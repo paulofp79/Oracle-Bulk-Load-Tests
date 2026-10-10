@@ -19,11 +19,11 @@ static OraText oci_dp_column_names[OCI_DP_COLUMN_COUNT][16] = {
     "ID", "CUSTOMER_ID", "AMOUNT", "LOAD_DATE", "PAYLOAD"
 };
 static ub2 oci_dp_column_types[OCI_DP_COLUMN_COUNT] = {
-    SQLT_NUM, SQLT_NUM, SQLT_NUM, SQLT_DATE, SQLT_CHR
+    SQLT_VNU, SQLT_VNU, SQLT_VNU, SQLT_CHR, SQLT_CHR
 };
 static ub4 oci_dp_column_sizes[OCI_DP_COLUMN_COUNT] = {
     sizeof(OCINumber), sizeof(OCINumber), sizeof(OCINumber),
-    sizeof(OCIDate), 20U
+    10U, 20U
 };
 
 typedef struct oci_dp_row
@@ -31,7 +31,8 @@ typedef struct oci_dp_row
     OCINumber id;
     OCINumber customer_id;
     OCINumber amount;
-    OCIDate load_date;
+    OraText load_date[10];
+    ub4 load_date_length;
     OraText payload[20];
     ub4 payload_length;
 } oci_dp_row;
@@ -283,6 +284,7 @@ static int oci_dp_set_context_attributes(OCIError *error_handle,
 static int oci_dp_set_column_attributes(OCIError *error_handle,
                                         OCIParam *column_list)
 {
+    static OraText date_format[] = "YYYY-MM-DD";
     OCIParam *column_descriptor;
     ub4 column_position;
     sword status;
@@ -328,7 +330,18 @@ static int oci_dp_set_column_attributes(OCIError *error_handle,
                                 (ub4)0, (ub4)OCI_ATTR_DATA_SIZE,
                                 error_handle);
         }
+        if (oci_dp_check(status, error_handle,
+                         "OCIAttrSet(column data size)") && column_index == 3)
+        {
+            status = OCIAttrSet((void *)column_descriptor,
+                                (ub4)OCI_DTYPE_PARAM,
+                                (void *)date_format,
+                                (ub4)(sizeof(date_format) - 1U),
+                                (ub4)OCI_ATTR_DATEFORMAT, error_handle);
+        }
         if (!oci_dp_check(status, error_handle,
+                          column_index == 3 ?
+                          "OCIAttrSet(date format)" :
                           "OCIAttrSet(column data size)"))
         {
             result = 0;
@@ -375,6 +388,7 @@ static int oci_dp_parse_record(OCIError *error_handle, char *line,
     size_t field_length[OCI_DP_COLUMN_COUNT];
     size_t line_length;
     size_t field_index;
+    OCIDate parsed_date;
     sword status;
 
     line_length = strlen(line);
@@ -448,7 +462,7 @@ static int oci_dp_parse_record(OCIError *error_handle, char *line,
                              (const OraText *)field_start[3],
                              (ub4)field_length[3], date_format,
                              (ub4)(sizeof(date_format) - 1U),
-                             (const OraText *)0, (ub4)0, &row->load_date);
+                             (const OraText *)0, (ub4)0, &parsed_date);
     if (!oci_dp_check(status, error_handle, "OCIDateFromText"))
     {
         (void)fprintf(stderr,
@@ -456,6 +470,8 @@ static int oci_dp_parse_record(OCIError *error_handle, char *line,
                       (unsigned int)input_line_number);
         return 0;
     }
+    (void)memcpy(row->load_date, field_start[3], field_length[3]);
+    row->load_date_length = (ub4)field_length[3];
 
     (void)memcpy(row->payload, field_start[4], field_length[4]);
     row->payload_length = (ub4)field_length[4];
@@ -473,12 +489,12 @@ static int oci_dp_set_row(OCIError *error_handle, OCIDirPathColArray *array,
     values[0] = (const void *)&row->id;
     values[1] = (const void *)&row->customer_id;
     values[2] = (const void *)&row->amount;
-    values[3] = (const void *)&row->load_date;
+    values[3] = (const void *)row->load_date;
     values[4] = (const void *)row->payload;
     value_lengths[0] = (ub4)sizeof(row->id);
     value_lengths[1] = (ub4)sizeof(row->customer_id);
     value_lengths[2] = (ub4)sizeof(row->amount);
-    value_lengths[3] = (ub4)sizeof(row->load_date);
+    value_lengths[3] = row->load_date_length;
     value_lengths[4] = row->payload_length;
 
     for (column_index = (ub2)0; column_index < (ub2)OCI_DP_COLUMN_COUNT;
