@@ -764,7 +764,7 @@ int main(int argc, char **argv)
                        (ub4)strlen(password),
                        (const OraText *)connect_identifier,
                        (ub4)strlen(connect_identifier),
-                       (ub4)OCI_LOGON2_DEFAULT);
+                       (ub4)OCI_DEFAULT);
     (void)memset(password, 0, sizeof(password));
     if (!oci_dp_check(status, error_handle, "OCILogon2"))
     {
