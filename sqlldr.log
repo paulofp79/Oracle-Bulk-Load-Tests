@@ -1,0 +1,58 @@
+
+SQL*Loader: Release 23.26.3.0.0 - Production on Sat Oct 10 11:27:56 2026
+Version 23.26.3.0.0
+
+Copyright (c) 1982, 2026, Oracle and/or its affiliates.  All rights reserved.
+
+Control File:   /scratch/paportug/Codex/Oracle-Bulk-Load-Tests/03_sqlldr.ctl
+Character Set AL32UTF8 specified for all input.
+
+Data File:      bulk_test_10m.dat
+  Bad File:     sqlldr_bad.dat
+  Discard File: sqlldr_discard.dat 
+ (Allow all discards)
+
+Number to load: ALL
+Number to skip: 0
+Errors allowed: 0
+Continuation:    none specified
+Path used:      Direct
+
+Table SQLLDR_BULK_TEST_20261009, loaded from every logical record.
+Insert option in effect for this table: TRUNCATE
+TRAILING NULLCOLS option in effect
+
+   Column Name                  Position   Len  Term Encl Datatype
+------------------------------ ---------- ----- ---- ---- ---------------------
+ID                                  FIRST     *   |  O(") CHARACTER            
+CUSTOMER_ID                          NEXT     *   |  O(") CHARACTER            
+AMOUNT                               NEXT     *   |  O(") CHARACTER            
+LOAD_DATE                            NEXT     *   |  O(") DATE YYYY-MM-DD      
+PAYLOAD                              NEXT    20   |  O(") CHARACTER            
+
+
+Table SQLLDR_BULK_TEST_20261009:
+  10000000 Rows successfully loaded.
+  0 Rows not loaded due to data errors.
+  0 Rows not loaded because all WHEN clauses were failed.
+  0 Rows not loaded because all fields were null.
+
+  Date conversion cache disabled due to overflow (default size: 1000)
+
+Bind array size not used in direct path.
+Column array  rows :    5000
+Stream buffer bytes:  256000
+Read   buffer bytes: 1048576
+
+Total logical records skipped:          0
+Total logical records read:      10000000
+Total logical records rejected:         0
+Total logical records discarded:        0
+Total stream buffers loaded by SQL*Loader main thread:     2162
+Total stream buffers loaded by SQL*Loader load thread:        0
+
+Run began on Sat Oct 10 11:27:56 2026
+Run ended on Sat Oct 10 11:29:07 2026
+
+Elapsed time was:     00:01:11.35
+CPU time was:         00:00:14.76
